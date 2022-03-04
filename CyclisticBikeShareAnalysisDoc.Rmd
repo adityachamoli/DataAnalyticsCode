@@ -1,0 +1,437 @@
+---
+title: "Cyclistic Bike Share Analysis"
+author: "Aditya Chamoli"
+date: "06/01/2022"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+## Cyclistic Bike Share Dataset (Divvy_Trips_2020_Q1)
+
+You are a junior data analyst working in the marketing analyst team at Cyclistic, a bike-share company in Chicago. The director of marketing believes the company’s future success depends on maximizing the number of annual memberships. Therefore, your team wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights, your team will design a new marketing strategy to convert casual riders into annual members. But first, Cyclistic executives must approve your recommendations, so they must be backed up with compelling data insights and professional data visualizations.
+
+# A. Installing necessary packages:
+
+```{r cA, include=TRUE, message=FALSE, warning=FALSE}
+options(repos=c(CRAN="http://cran.rstudio.com"))
+```
+```{r cB, include=TRUE, message=FALSE, warning=FALSE}
+install.packages("tinytex")
+```
+```{r cC, include=TRUE, message=FALSE, warning=FALSE}
+tinytex::install_tinytex()
+```
+```{r cD, include=TRUE, message=FALSE, warning=FALSE}
+install.packages("tidyverse")
+```
+```{r cE, include=TRUE, message=FALSE, warning=FALSE}
+install.packages("tidyr")
+```
+```{r cF, include=TRUE, message=FALSE, warning=FALSE}
+install.packages("dplyr")
+```
+```{r cG, include=TRUE, message=FALSE, warning=FALSE}
+install.packages("readr")
+```
+```{r cH, include=TRUE, message=FALSE, warning=FALSE}
+install.packages("ggplot2")
+```
+```{r cI, include=TRUE, message=FALSE, warning=FALSE}
+install.packages("plotrix")
+```
+```{r cJ, include=TRUE, message=FALSE, warning=FALSE}
+install.packages("janitor")
+```
+```{r cK, include=TRUE, message=FALSE, warning=FALSE}
+install.packages("modeest")
+```
+
+# B. Including necessary packages:
+
+```{r cL, include=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse) 
+#package for data manipulation, exploration and visualization
+```
+```{r cM, include=TRUE, message=FALSE, warning=FALSE}
+library(tidyr) 
+#package for data cleaning
+```
+```{r cN, include=TRUE, message=FALSE, warning=FALSE}
+library(dplyr) 
+#package for data manipulation
+```
+```{r cO, include=TRUE, message=FALSE, warning=FALSE}
+library(readr) 
+#package for importing data
+```
+```{r cP, include=TRUE, message=FALSE, warning=FALSE}
+library(ggplot2) 
+#package for applying visual properties
+```
+```{r cQ, include=TRUE, message=FALSE, warning=FALSE}
+library(plotrix)
+#package for plotting
+```
+```{r cR, include=TRUE, message=FALSE, warning=FALSE}
+library(janitor) 
+#package for examining and cleaning dirty data
+```
+```{r cS, include=TRUE, message=FALSE, warning=FALSE}
+library(modeest) 
+#package for finding mode
+```
+
+# C. Reading data from Comma Seperated Values (CSV) file into a data frame named cyclistic_df:
+
+```{r c1, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df <- read_csv("Divvy_Trips_2020_Q1.csv") 
+#reading Cyclistic data from comma seperated values (csv) file
+```
+
+# D. Viewing and checking the quality of cyclistic_df data frame:
+
+```{r c2, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% dim() 
+#dimensions of cyclistic_df dataframe
+```
+```{r c3, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% colnames() 
+#column names of cyclistic_df dataframe
+```
+```{r c4, include=TRUE, message=FALSE, warning=FALSE}
+str(cyclistic_df) 
+#internal structure of cyclistic_df dataframe
+```
+```{r c5, include=TRUE, message=FALSE, warning=FALSE}
+glimpse(cyclistic_df) 
+#glimpse of cyclistic_df dataframe
+```
+```{r c6, include=TRUE, message=FALSE, warning=FALSE}
+head(cyclistic_df) 
+#first 6 columns of cyclistic_df dataframe
+```
+```{r c7, include=TRUE, message=FALSE, warning=FALSE}
+View(cyclistic_df) 
+#viewing cyclistic_df dataframe
+```
+```{r c8, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% clean_names() 
+#checking cyclistic_df dataframe for clean column names
+```
+```{r c9, include=TRUE, message=FALSE, warning=FALSE}
+summary(cyclistic_df) 
+#statistical summary of cyclistic_df dataframe
+```
+
+# E. Data Cleaning:
+
+* Adding ride_length and day_of_week column to cyclistic_df data frame:
+
+```{r c10, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df <- cyclistic_df %>% mutate(ride_length = ended_at - started_at) 
+#adding ride_length column to cyclistic_df dataframe
+```
+```{r c11, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df <- cyclistic_df %>% mutate(day_of_week = weekdays(started_at)) 
+#adding day_of_week column to cyclistic_df dataframe
+```
+```{r c12, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df$ride_length <- abs(cyclistic_df$ride_length) 
+#taking absolute value of ride_length column 
+```
+
+* Replacing values in cyclistic_df data frame:
+
+```{r c13, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df["member_casual"][cyclistic_df["member_casual"] == "member"] <- "annual" #replacing member value of member_casual column with annual
+```
+
+* Arranging and sorting records in cyclistic_df data frame:
+
+```{r c14, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df <- cyclistic_df %>% arrange(start_station_id,end_station_id) 
+#sorting cyclistic_df dataframe records by start_station_id and end_station_id in ascending order
+```
+
+* Dropping records with NA or NULL values in cyclistic_df data frame: 
+
+```{r c15, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df <- na.omit(cyclistic_df) 
+#dropping records with NA or NULL values in cyclistic_df dataframe
+```
+
+* Dropping duplicate records from cyclistic_df data frame:
+
+```{r c16, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df <- cyclistic_df[!duplicated(cyclistic_df),] 
+#dropping duplicated records from cyclistic_df dataframe
+```
+
+* Interquartile range of distance_km column:
+
+```{r c17, include=TRUE, message=FALSE, warning=FALSE}
+IQR(cyclistic_df$distance_km) 
+#interquartile range of distance_km (IQR = Upper Quartile - Lower Quartile)
+```
+
+* Dimension of cleaned cyclistic_df data frame:
+
+```{r c18, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% dim() 
+#dimension of cyclistic_df dataframe after cleaning the data
+```
+
+# F. Data Analysis:
+
+* Minimum, Maximum and Mean value of ride_length:
+
+```{r c19, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% summarize(mean_ride_length = mean(ride_length)) #mean ride_length
+```
+```{r c20, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% summarize(max_ride_length = max(ride_length)) #maximum ride_length
+```
+```{r c21, include=TRUE, message=FALSE, warning=FALSE}
+mfv(cyclistic_df$ride_length) 
+#mode of ride_length
+```
+
+* Adding distance_km column in cyclistic_df data frame:
+
+```{r c22, include=TRUE, message=FALSE, warning=FALSE}
+lat1 <- cyclistic_df$start_lat
+```
+```{r c23, include=TRUE, message=FALSE, warning=FALSE}
+lng1 <- cyclistic_df$start_lng
+```
+```{r c24, include=TRUE, message=FALSE, warning=FALSE}
+lat2 <- cyclistic_df$end_lat
+```
+```{r c25, include=TRUE, message=FALSE, warning=FALSE}
+lng2 <- cyclistic_df$end_lng
+```
+```{r c26, include=TRUE, message=FALSE, warning=FALSE}
+R <- 6371
+```
+```{r c27, include=TRUE, message=FALSE, warning=FALSE}
+a1 <- lat1 * 0.0174
+```
+```{r c28, include=TRUE, message=FALSE, warning=FALSE}
+a2 <- lat2 * 0.0174
+```
+```{r c29, include=TRUE, message=FALSE, warning=FALSE}
+b1 <- (lat2 - lat1) * 0.0174
+```
+```{r c30, include=TRUE, message=FALSE, warning=FALSE}
+b2 <- (lng2 - lng1) * 0.0174
+```
+```{r c31, include=TRUE, message=FALSE, warning=FALSE}
+a <- sin(b1/2) * sin(b1/2) + cos(a1) * cos(a2) * sin(b2/2) * sin(b2/2)
+```
+```{r c32, include=TRUE, message=FALSE, warning=FALSE}
+b <- 2 * atan2(sqrt(a),sqrt(1-a))
+```
+```{r c33, include=TRUE, message=FALSE, warning=FALSE}
+d <- R * b
+```
+```{r c34, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df <- cyclistic_df %>% mutate(distance_km = d) 
+#adding distance_km column in cyclistic_df dataframe
+```
+```{r c35, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df$distance_km <- abs(cyclistic_df$distance_km) 
+#taking absolute value of distance_km
+```
+
+* Minimum, Maximum and Mean value of ride_length and distance_km for two casual_member categories:
+
+```{r c36, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% group_by(member_casual) %>% summarize(min_ride_length = min(ride_length),max_ride_length = max(ride_length),mean_ride_length = mean(ride_length)) 
+#minimum, maximum and mean ride_length for two casual_member categories
+```
+```{r c37, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% group_by(member_casual) %>% summarize(min_distance_km = min(distance_km),max_distance_km = max(distance_km),mean_distance_km = mean(distance_km)) 
+#minimum, maximum and mean distance_km for two casual_member categories
+```
+
+* Count of records of casual members and members with annual memberships
+
+```{r c38, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% group_by(member_casual) %>% count() #count of casual members and members with annual memberships
+```
+
+* Count of starting and ending bike stations:
+
+```{r c39, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% distinct(start_station_id) %>% count() 
+#count of distinct starting stations
+```
+```{r c40, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% distinct(end_station_id) %>% count() 
+#count of distinct ending stations
+```
+
+* Count of records from each starting and ending bike stations:
+
+```{r c41, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% group_by(start_station_name) %>% count() 
+#count of records from each starting station
+```
+```{r c42, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% group_by(end_station_name) %>% count() 
+#count of records from each ending station
+```
+
+* Busiest starting and ending bike station:
+
+```{r c43, include=TRUE, message=FALSE, warning=FALSE}
+df1 <- cyclistic_df %>% group_by(start_station_name) %>% summarise(mean_ride_length = mean(ride_length))
+df1 %>% summarize(max_mean_ride_length = max(mean_ride_length))
+df1 %>% filter(mean_ride_length == 2693828) 
+#busiest starting station
+```
+```{r c44, include=TRUE, message=FALSE, warning=FALSE}
+df2 <- cyclistic_df %>% group_by(end_station_name) %>% summarise(mean_ride_length = mean(ride_length))
+df2 %>% summarize(max_mean_ride_length = max(mean_ride_length))
+df2 %>% filter(mean_ride_length == 857866.5) 
+#busiest ending station
+```
+
+* Count of records for each day_of_week: 
+
+```{r c45, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% group_by(day_of_week) %>% count() 
+#count of records from each day_of_week
+```
+
+* Mean ride_length and distance_km for each day_of_week: 
+
+```{r c46, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% group_by(day_of_week) %>% summarise(mean_ride_length = mean(ride_length)) 
+#mean ride_length value for each day_of_week
+```
+```{r c47, include=TRUE, message=FALSE, warning=FALSE}
+cyclistic_df %>% group_by(day_of_week) %>% summarise(mean_distance_km = mean(distance_km)) 
+#mean distance_km value for each day_of_week
+```
+
+* Strength of relationship between ride_length and distance_km:
+
+```{r c48, include=TRUE, message=FALSE, warning=FALSE}
+rl <- as.numeric(cyclistic_df$ride_length)
+```
+```{r c49, include=TRUE, message=FALSE, warning=FALSE}
+dkm <- cyclistic_df$distance_km
+```
+```{r c50, include=TRUE, message=FALSE, warning=FALSE}
+cov(rl,dkm) 
+#covariance value between ride_length and distance_km
+```
+```{r c51, include=TRUE, message=FALSE, warning=FALSE}
+cor(rl,dkm) 
+#cofficient of correlation value between ride_length and distance_km
+```
+
+# G. Data Visualization:
+
+* Bar plot for average ride_length for two categories of member_casual:
+
+```{r c52, include=TRUE, message=FALSE, warning=FALSE}
+p1 <- cyclistic_df %>% group_by(member_casual) %>% summarize(min_ride_length = min(ride_length),max_ride_length = max(ride_length),mean_ride_length = mean(ride_length)) 
+#minimum, maximum and mean ride_length for two casual_member categories
+```
+```{r c53, include=TRUE, message=FALSE, warning=FALSE}
+p1
+```
+```{r c54, include=TRUE, message=FALSE, warning=FALSE}
+ggplot(p1, aes(x = member_casual, y = mean_ride_length)) +
+  labs(title = "Bar plot", subtitle = "Average ride length for two categories of customers", caption = "Dataset: Divvy_Trips_2020_Q1") +
+  geom_bar(stat = "identity", fill = "blue", col = "red", alpha = 0.5) 
+#bar plot for average ride_length
+```
+
+* Bar plot for average distance_km for two categories of member_casual:  
+
+```{r c55, include=TRUE, message=FALSE, warning=FALSE}
+p2 <- cyclistic_df %>% group_by(member_casual) %>% summarize(min_distance_km = min(distance_km),max_distance_km = max(distance_km),mean_distance_km = mean(distance_km)) 
+#minimum, maximum and mean distance_km for two casual_member categories
+```
+```{r c56, include=TRUE, message=FALSE, warning=FALSE}
+p2
+```
+```{r c57, include=TRUE, message=FALSE, warning=FALSE}
+ggplot(p2, aes(x = member_casual, y = mean_distance_km)) +
+  labs(title = "Bar plot", subtitle = "Average distance in kilometers for two categories of customers", caption = "Dataset: Divvy_Trips_2020_Q1") +
+  geom_bar(stat = "identity", fill = "red", col = "blue", alpha = 0.5) 
+#bar plot for average distance_km traveled
+```
+
+* Histogram for distribution of distance_km traveled:
+
+```{r c58, include=TRUE, message=FALSE, warning=FALSE}
+ggplot(cyclistic_df, aes(x = distance_km)) +
+  labs(title = "Histogram", subtitle = "Distribution of distance_km traveled", caption = "Dataset: Divvy_Trips_2020_Q1") +
+  geom_histogram(fill = "blue", col = "red",alpha = 0.5)
+#histogram for distribution of distance_km 
+```
+
+* Box plot for distribution of distance_km around Interquartile Range:
+
+```{r c59, include=TRUE, message=FALSE, warning=FALSE}
+ggplot(cyclistic_df, aes(x = member_casual, y = distance_km)) + 
+  labs(title = "Box plot", subtitle = "distance_km traveled", caption = "Dataset: Divvy_Trips_2020_Q1") +
+  geom_boxplot(fill = "brown", alpha = 0.3)
+#box plot for distance_km traveled
+```
+
+* Bar graph for count of records for each day_of_week:
+
+```{r c60, include=TRUE, message=FALSE, warning=FALSE}
+p3 <- cyclistic_df %>% group_by(day_of_week) %>% count() 
+#count of records from each day_of_week
+```
+```{r c61, include=TRUE, message=FALSE, warning=FALSE}
+p3
+```
+```{r c62, include=TRUE, message=FALSE, warning=FALSE}
+ggplot(p3, aes(x = day_of_week, y = n)) +
+  labs(title = "Bar graph", subtitle = "Count of records for each day of week", caption = "Dataset: Divvy_Trips_2020_Q1") +
+  geom_bar(stat = "identity", fill = "orange", alpha = 0.7)
+#bar graph for count of records
+```
+
+* Bar plot for average distance_km for each day_of_week:
+
+```{r c63, include=TRUE, message=FALSE, warning=FALSE}
+p4 <- cyclistic_df %>% group_by(day_of_week) %>% summarise(mean_distance_km = mean(distance_km)) 
+```
+```{r c64, include=TRUE, message=FALSE, warning=FALSE}
+p4
+```
+```{r c65, include=TRUE, message=FALSE, warning=FALSE}
+ggplot(p4,aes(x = day_of_week, y = mean_distance_km)) +
+  labs(title = "Bar plot", subtitle = "Average distance traveled in each day of week", caption = "Dataset: Divvy_Trips_2020_Q1") +
+  geom_bar(stat = "identity", fill = "green", col = "darkgreen", alpha = 0.5)
+#bar plot for average distance_km traveled
+```
+
+* Scatter plot with regression line between ride_length and distance_km:
+
+```{r c66, include=TRUE, message=FALSE, warning=FALSE}
+ggplot(data=cyclistic_df) +
+  labs(title = "Scatter Plot", subtitle = "Relationship between ride_length and distance_km", caption = "Dataset: Divvy_Trips_2020_Q1") +
+  geom_point(mapping = aes(x = as.numeric(ride_length), y = distance_km, color = day_of_week), position = position_jitter())  +
+  stat_smooth(mapping = aes(x = as.numeric(ride_length), y = distance_km), method = "lm", formula = y~x)
+#scatter plot for ride_length vs distance_km
+```
+
+* Heatmap for distance_km travelled in each day_of_week by two categories of bike share customers:
+
+```{r c67, include=TRUE, message=FALSE, warning=FALSE}
+ggplot(cyclistic_df, aes(x = member_casual, y = day_of_week, fill = distance_km )) +
+  labs(title = "Heat map", subtitle = "distance_km traveled by two categories of customers in different day_of_week", caption = "Dataset: Divvy_Trips_2020_Q1") +
+  geom_tile()
+#heatmap for distance_km
+```
